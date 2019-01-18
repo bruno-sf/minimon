@@ -39,6 +39,7 @@ Do the monitor at every 10 secs for 10 times using an alternate hosts file!
 ```
 python3 minimon.py --hostsfile /tmp/temp.txt --interval 10 --count 10 
 ```
+![screenshot](https://imgur.com/a/WKPTiuC)
 
 ## License
 
