@@ -1,0 +1,4 @@
+DNS Pub. Google:8.8.8.8:icmp
+DNS Pub 2:1.1.1.1:http
+Site Banco do Brasil:www.bb.com.br:https
+Site que nao existe:www.uifyiufydsi.com:http
