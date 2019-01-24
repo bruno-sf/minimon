@@ -4,8 +4,8 @@
 Author: Bruno Fereira / brunosilvaferreira@protonmail.com
 Date: Jan 2019
 Name: minimon.py
-Purpose: Check if a service/host is up (green), down(red) and show when status
-change(yellow).
+Purpose: Check if a service/host is up (green), down(red) and shows when status
+changes(yellow).
 License: This project is licensed under the MIT License - see the LICENSE.md
 file for details
 """
@@ -38,7 +38,7 @@ class Service():
     """
     PROTOCOLS = ["http", "https", "icmp"]
     TIMEOUT = 5
-
+    __slots__ = ['idx', 'name', 'addr', 'prot', 'status', 'last_status']
     def __init__(self, idx, name, addr, prot, status="", last_status=""):
         """Construct the Service class and set the attribs."""
         self.idx = idx
@@ -64,15 +64,15 @@ class Service():
             _get_code = urllib.request.urlopen(_req, None, self.TIMEOUT).getcode()
 
         except BaseException:
-            self.is_offline()
+            self.offline()
             return 1
 
         else:
             if _get_code == 200:
-                self.is_online()
+                self.online()
                 return 0
 
-            self.is_offline()
+            self.offline()
             return 1
 
 
@@ -115,10 +115,10 @@ class Service():
 
         else:
             if _ret == 0:
-                self.is_online()
+                self.online()
                 return 0
 
-            self.is_offline()
+            self.offline()
             return 1
 
 
@@ -188,14 +188,14 @@ class Service():
                 self.print_status()
 
 
-    def is_online(self):
-        """Method is_online() - Set the status attribute to "ONLINE " ."""
+    def online(self):
+        """Method online() - Set the status attribute to "ONLINE " ."""
         self.last_status = self.status
         self.status = "ONLINE "
 
 
-    def is_offline(self):
-        """Method is_offline() - Set the status attribute to "OFFLINE" ."""
+    def offline(self):
+        """Method offline() - Set the status attribute to "OFFLINE" ."""
         self.last_status = self.status
         self.status = "OFFLINE"
 
