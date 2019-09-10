@@ -16,8 +16,7 @@ HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
 
 ### Prerequisites
 
-Python 3
-No external libs needed!
+Just Python 3 (No external libs needed)!
 
 ### Usage
 
@@ -30,13 +29,13 @@ python3 minimon.py
 Using hosts file:
 Create a hosts file or edit minimon.txt with your hosts/services.
 The hosts file must use the following structure:
-[NAME/DESCRIPTION]:[ADDRESS]:[PROTOCOL]
+[NAME/DESCRIPTION]:[ADDRESS]:[PROTOCOL/TCPPORT]
 ```
 Name/Description of host 1:8.8.8.8:icmp
 Name/Description of host 2:www.bigwebprovider.com/somestaticpage.html:http
 Name/Description of host 3:www.lpi.org:https
 Name/Description of host 4:ftp.qubes-os.org:ftps
-Name/Description of host 5:ftp.qubes-os.org:8080
+Name/Description of host 5:somealternativepage.net:8080
 ```
 
 Passing hosts without Hosts file.
