@@ -6,10 +6,12 @@ A tiny program to check if a Host/Service is online.
 
 Well, if you are a CLI guy like me, and need a quick and reliable status of a network device/host/service you should give a chance on Minimon!
 
-Color Status Code:
-+GREEN - Service/Host is up 
-+YELLOW - Service/Host status changed since last check.
-+RED - Service/Host is down.
+### Color Status Code:
+| Color | Description |
+|------|-------------|
+| GREEN | Service/Host is up |
+| YELLOW | Service/Host status changed since last check |
+| RED | Service/Host is down |
 
 Protocols supported:
 HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
