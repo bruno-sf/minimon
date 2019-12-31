@@ -68,9 +68,9 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 ![screenshot](https://i.imgur.com/QGzBWzQ.png)
 
 ### TODO and Thoughts
-For the sake of keeping things simple, I think the program is what it is. Any new feature would probably require external libs or deceived from the original purpose.
+For the sake of keeping things simple, I think the program is what it is, of course a few features can come here and there but  nothing in mind now. Any new fancy feature would probably require external libs or deceived from the original purpose.
 
-Warning: HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
+***Warning:*** HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
 If your HTTPS checks are alway getting OFFLINE, maybe that's the problem. 
 Check with: python3 -m ssl 
 
