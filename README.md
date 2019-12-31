@@ -1,16 +1,10 @@
-# Minimon
-
-A tiny program to check if a Host/Service is online.
-
-## Getting Started
-
-Well, if you are a CLI guy like me, and need a quick and reliable status of a network device/host/service you should give a chance on Minimon!
+Well, if you are a CLI guy like me, and just need a quick and reliable status of a network device/link/host/service you should give a chance on Minimon!
 
 ### Color Status Code:
 | Color | Description |
 |------|-------------|
 | GREEN | Service/Host is up |
-| YELLOW | Service/Host status changed since last check |
+| YELLOW | Service/Host status changed since the last check |
 | RED | Service/Host is down |
 
 Protocols supported:
@@ -41,12 +35,12 @@ Name/Description of host 5:somealternativepage.net:8080
 ```
 
 Passing hosts without Hosts file.
-Check at every 30 secs for 5 times:
+Check it every 30 secs for 5 times:
 ```
 python3 minimon.py -i 30 -c 5 8.8.8.8 8.8.4.4 1.1.1.1
 ```
 
-Check at every 30 secs for 5 times:
+Check it every 30 secs for 5 times:
 ```
 python3 minimon.py -i 30 -c 5
 ```
@@ -73,10 +67,10 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 
 ![screenshot](https://i.imgur.com/QGzBWzQ.png)
 
-### Todos and Thoughs
-For the sake of keeping things simple, I think the program is what it is. Any new feature would probabbly require external libs or disvitue from the original purpose.
+### Todos and Thoughts
+For the sake of keeping things simple, I think the program is what it is. Any new feature would probably require external libs or deceived from the original purpose.
 
-Warning: HTTPS support is only available if Python was compiled with SSL support (through the ssl module).
+Warning: HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
 If your HTTPS checks are alway getting OFFLINE, maybe that's the problem. 
 Check with: python3 -m ssl 
 
