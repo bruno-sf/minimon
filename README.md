@@ -1,27 +1,23 @@
-Well, if you are a CLI guy like me, and just need a quick and reliable status of a network device/link/host/service you should give a chance on Minimon!
-
-### Color Status Code:
-| Color | Description |
-|------|-------------|
-| GREEN | Service/Host is up |
-| YELLOW | Service/Host status changed since the last check |
-| RED | Service/Host is down |
-
-Protocols supported:
-HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
+What is ``minimon``?
+-----------------------
+Well, if you are a CLI guy like me, and just need a quick and reliable status of a network device/link/host/service you should give a chance on minimon!
 
 ### Prerequisites
 
-Just Python 3 (No external libs needed)!
+- Just Python 3 (No external libs needed)! :snake:
 
 ### Usage
 
-A step by step series of examples that tell you how to use minimon.
+A step by step series of examples that show you how to use minimon.
 
 Default behavior: loop indefinitely, checking every minute hosts/service inside minimon.txt file.
+
 ```
 python3 minimon.py
 ```
+![gif](https://i.imgur.com/XkMGVnT.gif)
+
+
 Using hosts file:
 Create a hosts file or edit minimon.txt with your hosts/services.
 The hosts file must use the following structure:
@@ -58,19 +54,32 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 ### All Available Parameters
 | Name | Description |
 |------|-------------|
-| -f / --hostsfile | The ARN assigned by AWS to this policy |
-| -p / --protocol | The description of the policy |
-| -i / --interval | The policy ID |
-| -t / --timeout | The name of the policy |
-| -h / --help | The path of the policy in IAM |
-| --version | The policy document |
+| -f / --hostsfile | The hosts file should content: NAME:ADDRESS:PROTOCOL line by line. Default: minimon.txt |
+| -p / --protocol | Use only if not using hostsfile. Default=icmp |
+| -i / --interval | The interval in seconds minimon will make another check. Default: 10 seconds (1-3600) |
+| -c / --count | How many checks minimon will do. Default: 0 (infinite loop) - (0-99999) |
+| -t / --timeout | Set a global timeout in seconds for checks. Default: 5 (1-30). |
+| -h / --help | show the help message and exit |
+| --version | show program's version number and exit |
+
+### Color Status Code:
+| Color | Description |
+|------|-------------|
+| GREEN | Service/Host is up |
+| YELLOW | Service/Host status changed since the last check |
+| RED | Service/Host is down |
+
+### Protocols supported:
+HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
 
 ![screenshot](https://i.imgur.com/QGzBWzQ.png)
 
-### TODO and Thoughts
+### TODO and Thoughts :thought_balloon:
 For the sake of keeping things simple, I think the program is what it is, of course a few features can come here and there but  nothing in mind now. Any new fancy feature would probably require external libs or deceived from the original purpose.
 
-***Warning:*** HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
+- [ ] - Finish generic TCP/UDP port check via socks
+
+:warning: ***Warning:*** HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
 If your HTTPS checks are alway getting OFFLINE, maybe that's the problem. 
 Check with: python3 -m ssl 
 
