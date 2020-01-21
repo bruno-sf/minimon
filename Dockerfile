@@ -7,5 +7,5 @@ WORKDIR /usr/app
 COPY ./ ./
 
 RUN apk add --update python3
-#ENTRYPOINT ["/minimon.py"]
-CMD ./minimon.py
+
+ENTRYPOINT ["python3", "minimon.py"]
