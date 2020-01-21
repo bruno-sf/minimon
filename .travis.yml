@@ -10,9 +10,8 @@ services:
   - docker
 
 before_install:
-  - docker build -t brunoferreira/minimon -f Dockerfile.dev .
+  - docker build -t brunoferreira/minimon .
 
 script:
   - pytest
   - docker run -e CI=true brunoferreira/minimon
-
