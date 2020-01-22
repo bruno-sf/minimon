@@ -5,7 +5,6 @@ python:
   - "3.8"
   - "3.8-dev"
   - "nightly"
-
 services:
   - docker
 
@@ -14,4 +13,5 @@ before_install:
 
 script:
   - pytest
-  - docker run -e CI=true brunoferreira/minimon
+  #Dont execute in loop mode so Travis CI build can finish ;)
+  - docker run -e CI=true brunoferreira/minimon -c1
