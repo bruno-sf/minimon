@@ -12,6 +12,6 @@ before_install:
   - docker build -t brunoferreira/minimon .
 
 script:
-  - pytest
+  - python3 minimon.py -c1 
   #Dont execute in loop mode so Travis CI build can finish ;)
   - docker run -e CI=true brunoferreira/minimon -c1
