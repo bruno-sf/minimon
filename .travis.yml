@@ -5,7 +5,7 @@ python:
   - "3.8"
   - "3.8-dev"
   - "nightly"
-sudo: required
+
 services:
   - docker
 
