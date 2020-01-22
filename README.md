@@ -19,9 +19,11 @@ python3 minimon.py
 ![gif](https://i.imgur.com/XkMGVnT.gif)
 
 Docker version(same behavior)
+
 ```
 docker run brunoferreira/minimon
 ```
+![screenshot](https://i.imgur.com/m9bcrE8.png)
 
 Using hosts file(default):
 Create a hosts file or edit minimon.txt with your hosts/services.
