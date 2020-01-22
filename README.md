@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/bruno-sf/minimon.svg?branch=master)](https://travis-ci.com/bruno-sf/minimon)
 What is ``minimon``?
 -----------------------
 Well, if you are a CLI guy like me, and just need a quick and reliable status of a network device/link/host/service you should give a chance on minimon!
@@ -17,10 +18,14 @@ python3 minimon.py
 ```
 ![gif](https://i.imgur.com/XkMGVnT.gif)
 
+Docker version(same behavior)
+```
+docker run brunoferreira/minimon
+```
 
-Using hosts file:
+Using hosts file(default):
 Create a hosts file or edit minimon.txt with your hosts/services.
-The hosts file must use the following structure:
+The hosts file must use the following structure(already included):
 [NAME/DESCRIPTION]:[ADDRESS]:[PROTOCOL/TCPPORT]
 ```
 Name/Description of host 1:8.8.8.8:icmp
