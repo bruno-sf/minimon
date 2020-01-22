@@ -1,5 +1,3 @@
-#Projeto minimon - Dockerfile - brunof 21/01/2020
-#FROM python:alpine
 FROM alpine
 
 WORKDIR /usr/app
@@ -8,4 +6,4 @@ COPY ./ ./
 
 RUN apk add --update python3
 
-ENTRYPOINT ["python3", "minimon.py"]
+ENTRYPOINT ["/usr/bin/python3", "-u", "minimon.py"]
