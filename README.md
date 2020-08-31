@@ -1,6 +1,12 @@
 [![Build Status](https://travis-ci.com/bruno-sf/minimon.svg?branch=master)](https://travis-ci.com/bruno-sf/minimon)
 What is ``minimon``?
 -----------------------
+A small Python3 tool for simple network checks(HTTP/HTTPs, ICMP, TCP Open Ports). 
+
+Why ``minimon``?
+-----------------------
+Sometimes you are testing a new link, device, host, or service and the ping utility or netcat is not enough.
+You need something more, that shows if the target is flapping, stable, or dead. And even someone not tech savvy could interpret the results.
 Well, if you are a CLI guy like me, and just need a quick and reliable status of a network device/link/host/service you should give a chance on minimon!
 
 ### Prerequisites
@@ -58,7 +64,7 @@ python3 minimon.py -i 10 -p http localhost
 or
 python3 minimon.py -i 10 localhost (default protocol is icmp)
 ```
-### All Available Parameters
+### All Available Parameters :speech_balloon::
 | Name | Description |
 |------|-------------|
 | -f / --hostsfile | The hosts file should content: NAME:ADDRESS:PROTOCOL line by line. Default: minimon.txt |
@@ -69,22 +75,23 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 | -h / --help | show the help message and exit |
 | --version | show program's version number and exit |
 
-### Color Status Code:
+### Color Status Code :traffic_light::
 | Color | Description |
 |------|-------------|
 | GREEN | Service/Host is up |
 | YELLOW | Service/Host status changed since the last check |
 | RED | Service/Host is down |
 
-### Protocols supported:
+### Protocols supported :satellite::
 HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
 
 ![screenshot](https://i.imgur.com/QGzBWzQ.png)
+![screenshot](https://i.imgur.com/sGgsbYc.png)
 
 ### TODO and Thoughts :thought_balloon:
 For the sake of keeping things simple, I think the program is what it is, of course a few features can come here and there but  nothing in mind now. Any new fancy feature would probably require external libs or deceived from the original purpose.
 
-- [ ] - Finish generic TCP/UDP port check via socks
+- [ x ] - Finish generic TCP port check via socks
 
 :warning: ***Warning:*** HTTPS support is only available if Python was compiled with SSL support (through the SSL module).
 If your HTTPS checks are alway getting OFFLINE, maybe that's the problem. 
