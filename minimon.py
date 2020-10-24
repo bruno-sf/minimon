@@ -8,15 +8,13 @@ Released at: Jan 2019
 Purpose: Check if a service/host is up (green), down(red) and shows when status changes(yellow).
 License: This project is licensed under the MIT License - see the LICENSE.md file for details.
 """
-import sys
-
-
 VERSION = 3
 DATE = "Ago 2020"
 AUTHOR = "Bruno Ferreira"
 
 try:
     import os
+    import sys
     import time
     import socket
     import argparse
