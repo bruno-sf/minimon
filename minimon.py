@@ -8,6 +8,9 @@ Released at: Jan 2019
 Purpose: Check if a service/host is up (green), down(red) and shows when status changes(yellow).
 License: This project is licensed under the MIT License - see the LICENSE.md file for details.
 """
+import sys
+
+
 VERSION = 3
 DATE = "Ago 2020"
 AUTHOR = "Bruno Ferreira"
@@ -23,7 +26,14 @@ try:
 
 except ImportError as e_msg:
     print(e_msg)
-    exit(2)
+    os.sys.exit(2)
+
+
+class MinimonExc(Exception):
+    """Basic Exception Cls - Handles specific exceptions for debug only"""
+    def __init__(self, msg, orig_exc):
+        super().__init__(msg + (": {}".format(orig_exc)))
+        self.orig_exc = orig_exc
 
 
 class Service():
@@ -34,10 +44,8 @@ class Service():
         name: The name of the service being monitored. ex.: My router
         addr: The address of the service. ex.: www.test.com or 192.168.1.100
         prot: The protocol used to monitor. ex.: HTTP, HTTPS, ICMP, All TCP pts
-        status: The status of the service. ex.: ONLINE, OFFLINE...
-    """
+        status: The status of the service. ex.: ONLINE, OFFLINE..."""
 
-    PROTOCOLS = ("http", "https", "icmp")
     __slots__ = ('idx', 'name', 'addr', 'prot',
                  'status', 'last_status', '_timeout')
 
@@ -58,16 +66,14 @@ class Service():
 
         try:
             _url = "{prot}://{addr}".format(prot=self.prot, addr=self.addr)
-            _ret_code = request.urlopen(
-                _url, None, timeout=self.timeout).getcode()
+            _ret_code = request.urlopen(_url, None, timeout=self.timeout).getcode()
 
         except (HTTPError, URLError):
             # Warning: Python compiled without ssl will enter here on any https requests.
             return self.offline()
 
         else:
-            success = lambda http_st: http_st >= 200 and http_st <= 299
-            if success(_ret_code):
+            if 200 >= _ret_code <= 299:
                 return self.online()
             return self.offline()
 
@@ -77,8 +83,7 @@ class Service():
         Use the own system ping tool to determine if a host is alive."""
 
         try:
-            _cmd_win = "ping -n 1 -w {timeout} {addr} > {devnull}"\
-                .format(timeout=self.timeout*1000, addr=self.addr, devnull=os.devnull)
+            _cmd_win = "ping -n 1 -w {timeout} {addr} > {devnull}".format(timeout=self.timeout*1000, addr=self.addr, devnull=os.devnull)
             _cmd_nix = "ping -q -c 1 -W {timeout} {addr} > {devnull} 2>&1".format(
                 timeout=self.timeout, addr=self.addr, devnull=os.devnull)
             _cmd_mac = "ping -q -c 1 {addr} > {devnull}".format(
@@ -99,14 +104,12 @@ class Service():
                 _ret = os.system(_cmd_mac)
 
             else:
+                # Will use nix cmds
                 _ret = os.system(_cmd_unkwon)
 
         except OSError as e_msg:
-            #[ERROR]: Can't determine your OS.
-            return e_msg
-
-        except BaseException as e_msg:
-            return e_msg
+            fail_exit("[ERROR]: Can't determine your OS.")
+            #raise MinimonExc("[ERROR]: Can't determine your OS.", e_msg) from e_msg
 
         else:
             if _ret == 0:
@@ -121,9 +124,10 @@ class Service():
                 _sock.settimeout(self.timeout)
                 conn = _sock.connect_ex((self.addr, _prt))
 
-        except socket.error:
-            print("Socket Error!")
-            return 1
+        except socket.error as e_msg:
+            print("[ERROR]: Socket Error!")
+            return self.offline()
+            #raise MinimonExc("[ERROR]: Socket Error!", e_msg) from e_msg
 
         else:
             if conn == 0:
@@ -136,25 +140,24 @@ class Service():
         Do the basic checks and call the designated protocol function."""
         try:
             _protocol = self.prot.lower()
-            #in_range = filter(lambda x: int(x), list(range(1, 65536)))
+            _tcp_range = filter(lambda x: int(x), list(range(1, 65536)))
 
-            if _protocol in self.PROTOCOLS:
-                if _protocol in ["http", "https"]:
-                    self.chk_web()
+            if _protocol in ["http", "https"]:
+                self.chk_web()
 
-                if _protocol == "icmp":
-                    self.chk_icmp()
+            elif _protocol == "icmp":
+                self.chk_icmp()
 
-            #elif int(_protocol) in in_range:
-            elif int(_protocol) in list(range(1, 65536)):
+            elif int(_protocol) in _tcp_range:
                 self.chk_sock(int(_protocol))
 
-        except ValueError:
-            return fail_exit(
-                "Invalid protocol: {}. Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol))
+            else:
+                return 1
 
-        except BaseException as e_msg:
-            return fail_exit(e_msg)
+        except ValueError as e_msg:
+            fail_exit("Invalid protocol \"{}\". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol))
+            #raise MinimonExc(
+                #"Invalid protocol: {}. Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol), e_msg) from e_msg
 
         else:
             return 0
@@ -181,6 +184,8 @@ class Service():
     def timeout(self, seconds):
         """Property timeout() - Set the timeout using property decorator ;)."""
 
+        if (seconds < 0) or (seconds > 30):
+            raise ValueError("Invalid timeout.")
         self._timeout = seconds
 
 
@@ -197,7 +202,8 @@ class Counter():
     def __repr__(self):
         """Method to return a brief description of this class."""
 
-        return "Class to handle counting. Initial:{} - Current:{} - Final:{}".format(self.initial, self.count, self.final_count)
+        return "Class to handle counting. Initial:{} - Current:{} - Final:{}"\
+            .format(self.initial, self.count, self.final_count)
 
     def finish(self):
         """Method finish - Make sure to exit when the count is over.
@@ -214,27 +220,27 @@ class Counter():
         return 0
 
 
+colors = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
+
 def fail_exit(_msg):
     """Funtion fail_exit() - Called if things goes wrong and show custom msg."""
 
     _msg = "[ERROR]: {} - Sorry about that, exiting...".format(_msg)
     print_std("DOWN", _msg)
-    exit(4)
+    os.sys.exit(4)
 
 
 def print_std(_type, _msg):
     """ Function print_std() - Standard print with color / type of message."""
 
-    COLORS = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m',
-              "HEADER": '\033[95m', "ALERT": '\033[93m'}
-    if _type.upper() in COLORS:
-        print(COLORS[_type]+_msg+COLORS["NORMAL"])
+    if _type.upper() in colors:
+        print(colors[_type]+_msg+colors["NORMAL"])
     else:
         print(_msg)
 
 
 def print_header():
-    """Function print_header() - print the header to help visualize the values """
+    """Function print_header() - just print the header. """
 
     _header_str = "[STATUS ] : (TURN:ID) - TIME - [PROT] - NAME - ADDRESS"
     print_std("HEADER", _header_str)
@@ -243,21 +249,16 @@ def print_header():
 def print_status(_service, turns):
     """Function print_status() - Print the service status."""
 
-    COLORS = {"UP": '\033[92m', "DOWN": '\033[91m',
-              "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
     _cstatus = {
-        "ONLINE ": COLORS["UP"]+_service.status+COLORS["NORMAL"],
-        "OFFLINE": COLORS["DOWN"]+_service.status+COLORS["NORMAL"],
-        "ALERT": COLORS["ALERT"]+_service.status+COLORS["NORMAL"]
+        "ONLINE ": colors["UP"]+_service.status+colors["NORMAL"],
+        "OFFLINE": colors["DOWN"]+_service.status+colors["NORMAL"],
+        "ALERT": colors["ALERT"]+_service.status+colors["NORMAL"]
     }
 
     _current_time = time.localtime()
     _f_time = time.strftime('%H:%M:%S', _current_time)
-    _status_msg = "[{status}] : ({cnt}:{idx}) - {time} - [{prot}] - {name} - {addr}".format(name=_service.name, addr=_service.addr,
-                                                                                            prot=_service.prot.upper(), status=_cstatus[_service.status], time=_f_time, idx=_service.idx, cnt=turns.count)
-
-    _alert_msg = "[{status}] : ({cnt}:{idx}) - {time} - [{prot}] - {name} - {addr}".format(name=_service.name, addr=_service.addr,
-                                                                                           prot=_service.prot.upper(), status=_cstatus["ALERT"], time=_f_time, idx=_service.idx, cnt=turns.count)
+    _status_msg = "[{status}] : ({cnt}:{idx}) - {time} - [{prot}] - {name} - {addr}".format(name=_service.name, addr=_service.addr, prot=_service.prot.upper(), status=_cstatus[_service.status], time=_f_time, idx=_service.idx, cnt=turns.count)
+    _alert_msg = "[{status}] : ({cnt}:{idx}) - {time} - [{prot}] - {name} - {addr}".format(name=_service.name, addr=_service.addr, prot=_service.prot.upper(), status=_cstatus["ALERT"], time=_f_time, idx=_service.idx, cnt=turns.count)
 
     if _service.last_status:
         if _service.last_status == _service.status:
@@ -293,13 +294,13 @@ def hostsfile_exist(file):
     try:
         exists = os.path.isfile(file)
 
-    except BaseException as e_msg:
-        fail_exit(e_msg)
+    except OSError as e_msg:
+        fail_exit("[ERROR]: Please check hostsfile provided")
+        #raise MinimonExc("[ERROR]: Please check hostsfile provided", e_msg) from e_msg
 
     else:
         if exists:
             return True
-
         return False
 
 
@@ -314,14 +315,13 @@ def parse_hostsfile(file) -> list:
             for line in in_file:
                 _list_hosts.append(line)
 
-    except FileNotFoundError:
+    except FileNotFoundError as e_msg:
         fail_exit("Can't find the hosts file provided:{}".format(file))
+        #raise MinimonExc("Can't find the hosts file provided:{}".format(file), e_msg) from e_msg
 
-    except PermissionError:
+    except PermissionError as e_msg:
         fail_exit("No permission to read file provided:{}".format(file))
-
-    except BaseException as e_msg:
-        fail_exit(e_msg)
+        #raise MinimonExc("No permission to read file provided:{}".format(file), e_msg) from e_msg
 
     else:
         return _list_hosts
@@ -343,46 +343,59 @@ def parse_hostsargs(ret_args) -> list:
 def parse_args() -> dict:
     """Function parse_args - Check and parse args, and finally atribute vals"""
 
-    parser = argparse.ArgumentParser(description="""Usage: minimon.py -i 5 -t 5 -c 10 8.8.8.8""")
+    parser = argparse.ArgumentParser(
+        description="""Usage: minimon.py -i 5 -t 5 -c 10 8.8.8.8""")
 
     parser.add_argument("-i", "--interval", type=int, action="store",
-                        dest="interval", default=10, help="The interval in seconds minimon will make another check. Default: 10 seconds (1-3600)")
+                        dest="interval", default=10,
+                        help="The interval in seconds minimon will make another check. Default: 10 seconds (1-3600)")
 
     parser.add_argument("-t", "--timeout", type=int, action="store",
-                        dest="timeout", default=5, help="Set a global timeout in seconds for checks. Default: 5 (1-30).")
+                        dest="timeout", default=5,
+                        help="Set a global timeout in seconds for checks.Default: 5 (1-30).")
 
     parser.add_argument("-c", "--count", type=int, action="store",
-                        dest="count", default=0, help="How many checks minimon will do. Default: 0 (infinite loop) - (0-99999).")
+                        dest="count", default=0,
+                        help="How many checks minimon will do. Default: 0 (infinite loop) - (0-99999).")
 
     my_exc_grp = parser.add_mutually_exclusive_group()
 
     my_exc_grp.add_argument("-f", "--hostsfile", type=str, action="store",
-                            dest="hostsfile", default="minimon.txt", help="The hosts file should content: NAME:ADDRESS:PROTOCOL line by line. Default: minimon.txt")
+                            dest="hostsfile", default="minimon.txt",
+                            help="The hosts file should content: NAME:ADDRESS:PROTOCOL line by line. Default: minimon.txt")
 
     my_exc_grp.add_argument("-p", "--protocol", type=str, action="store",
-                            dest="protocol", default="icmp", help="Use only if not using hostsfile. Default=icmp")
+                            dest="protocol", default="icmp",
+                            help="Use only if not using hostsfile. Default=icmp")
 
     parser.add_argument(
         '--version', action='version', version='%(prog)s - Minimon - Version: {ver} - {date} - Author: {author}'.format(ver=VERSION, date=DATE, author=AUTHOR))
 
-    parser.add_argument('pos_arg', default=None, metavar="Target(s)", type=str, nargs='*',
+    parser.add_argument('pos_arg', default=None, metavar="Target(s)",
+                        type=str, nargs='*',
                         help="If you pass a target host(s) as a positional arg the hostsfile will be ignored. Ex: minimon.py -p https www.lpi.org webserver.intranet 8.8.8.8")
 
     args = parser.parse_args()
 
     if args.interval < 1 or args.interval > 3600:
-        fail_exit("Invalid interval value, use something between 1-3600 seconds.")
+        fail_exit("Invalid interval value, must be between 1-3600 seconds.")
 
     if args.count < 0 or args.count > 99999:
         fail_exit("Invalid count value, use something between 0-99999")
 
     if args.timeout < 1 or args.timeout > 30:
-        fail_exit("Invalid timeout value, use an interval between 1-30 seconds.")
+        #Keep things going on if user pass timeout out of range.
+        if args.timeout > 30:
+            args.timeout = 30
+        else:
+            args.timeout = 1
+
+#    if args.protocol in PROTOCOLS
 
     if args.pos_arg:
         args_attr = {"mode": "pos_arg", "interval": args.interval,
-                     "hostsarg": args.pos_arg, "count": args.count, "timeout": args.timeout,
-                     "protocol": args.protocol}
+                     "hostsarg": args.pos_arg, "count": args.count,
+                     "timeout": args.timeout, "protocol": args.protocol}
 
     else:
         if hostsfile_exist(args.hostsfile):
@@ -390,8 +403,7 @@ def parse_args() -> dict:
                          "interval": args.interval, "count": args.count,
                          "timeout": args.timeout}
         else:
-            print_std("ALERT", "Can't find default hosts file: {}. Specify a valid file with -f or just pass the hosts as args. See -h for help".format(args.hostsfile))
-            exit(5)
+            fail_exit("Can't find default hosts file: {}. Specify a valid file with -f or just pass the hosts as args. See -h for help".format(args.hostsfile))
 
     return args_attr
 
@@ -413,8 +425,9 @@ def instance_service(_list_srvs) -> list:
             _idx += 1
         return _ret_list
 
-    except BaseException as e_msg:
-        fail_exit(e_msg)
+    except EOFError as e_msg:
+        fail_exit("[ERROR]: Unexpected error.")
+        #raise MinimonExc("[ERROR]: Unexpected error.", e_msg) from e_msg
 
 
 def main():
@@ -436,8 +449,9 @@ def main():
         turns = Counter(ret_args["count"])
         services = instance_service(list_services)
 
-    except BaseException as e_msg:
-        fail_exit(e_msg)
+    except RuntimeError as e_msg:
+        fail_exit("[ERROR]: Runtime error")
+        #raise MinimonExc("[ERROR]: Runtime error", e_msg) from e_msg
 
     try:
         while True:
@@ -453,13 +467,18 @@ def main():
             turns.add_one()
             time.sleep(ret_args["interval"])
 
+    except KeyError:
+        print("")
+        fail_exit()
+
     except KeyboardInterrupt:
         print("")
         print_std("ALERT", "Ouch! That's an interruption...")
-        exit(130)
+        os.sys.exit(130)
 
     else:
-        exit(0)
+        os.sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
