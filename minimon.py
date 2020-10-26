@@ -26,6 +26,8 @@ except ImportError as e_msg:
     print(e_msg)
     os.sys.exit(2)
 
+colors = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
+tcp_range = filter(lambda x: int(x), list(range(1, 65536)))
 
 class MinimonExc(Exception):
     """Basic Exception Cls - Handles specific exceptions for debug only"""
@@ -123,7 +125,7 @@ class Service():
                 conn = _sock.connect_ex((self.addr, _prt))
 
         except socket.error as e_msg:
-            print("[ERROR]: Socket Error!")
+            #print("[ERROR]: Socket Error!")
             return self.offline()
             #raise MinimonExc("[ERROR]: Socket Error!", e_msg) from e_msg
 
@@ -138,7 +140,6 @@ class Service():
         Do the basic checks and call the designated protocol function."""
         try:
             _protocol = self.prot.lower()
-            _tcp_range = filter(lambda x: int(x), list(range(1, 65536)))
 
             if _protocol in ["http", "https"]:
                 self.chk_web()
@@ -146,13 +147,13 @@ class Service():
             elif _protocol == "icmp":
                 self.chk_icmp()
 
-            elif int(_protocol) in _tcp_range:
+            elif int(_protocol) in list(range(1, 65536)):
                 self.chk_sock(int(_protocol))
 
             else:
-                return 1
+                raise ValueError
 
-        except ValueError as e_msg:
+        except ValueError:
             fail_exit("Invalid protocol \"{}\". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol))
             #raise MinimonExc(
                 #"Invalid protocol: {}. Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol), e_msg) from e_msg
@@ -217,8 +218,6 @@ class Counter():
         self.count += 1
         return 0
 
-
-colors = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
 
 def fail_exit(_msg):
     """Funtion fail_exit() - Called if things goes wrong and show custom msg."""
@@ -293,7 +292,7 @@ def hostsfile_exist(file):
         exists = os.path.isfile(file)
 
     except OSError as e_msg:
-        fail_exit("[ERROR]: Please check hostsfile provided")
+        fail_exit("[ERROR]: Please check hostsfile provided: {}".format(file))
         #raise MinimonExc("[ERROR]: Please check hostsfile provided", e_msg) from e_msg
 
     else:
@@ -387,8 +386,14 @@ def parse_args() -> dict:
             args.timeout = 30
         else:
             args.timeout = 1
-
-#    if args.protocol in PROTOCOLS
+    
+    try:
+        if args.protocol not in [ "http", "https", "icmp" ]:
+            if int(args.protocol) not in tcp_range:
+                raise ValueError
+    except ValueError:
+        fail_exit("Invalid protocol \"{}\". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(args.protocol))
+        
 
     if args.pos_arg:
         args_attr = {"mode": "pos_arg", "interval": args.interval,
@@ -465,9 +470,9 @@ def main():
             turns.add_one()
             time.sleep(ret_args["interval"])
 
-    except KeyError:
-        print("")
-        fail_exit()
+    except KeyError as e_msg:
+        print("to no keyerror")
+        fail_exit(e_msg)
 
     except KeyboardInterrupt:
         print("")
