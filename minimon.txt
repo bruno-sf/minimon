@@ -1,3 +1,4 @@
 Google Pub. DNS:8.8.8.8:icmp
 Some static page:www.bigwebprovider.com/somestaticpage.html:http
 Linux LPI:www.lpi.org:https
+LocalCUPS:localhost:631
