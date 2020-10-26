@@ -471,7 +471,6 @@ def main():
             time.sleep(ret_args["interval"])
 
     except KeyError as e_msg:
-        print("to no keyerror")
         fail_exit(e_msg)
 
     except KeyboardInterrupt:
