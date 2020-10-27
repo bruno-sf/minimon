@@ -14,7 +14,6 @@ AUTHOR = "Bruno Ferreira"
 
 try:
     import os
-    import sys
     import time
     import socket
     import argparse
@@ -24,10 +23,10 @@ try:
 
 except ImportError as e_msg:
     print(e_msg)
-    os.sys.exit(2)
+    raise SystemExit()
 
-colors = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
-tcp_range = filter(lambda x: int(x), list(range(1, 65536)))
+COLORS = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
+TCP_RANGE = filter(lambda x: int(x), list(range(1, 65536)))
 
 class MinimonExc(Exception):
     """Basic Exception Cls - Handles specific exceptions for debug only"""
@@ -191,7 +190,7 @@ class Service():
 class Counter():
     """Class to handle counting ops"""
 
-    def __init__(self, final_count, count=1, initial=1):
+    def __init__(self, final_count: int, count: int = 1, initial: int = 1) -> None:
         """Construct the Counter class"""
 
         self.initial = initial
@@ -219,22 +218,22 @@ class Counter():
         return 0
 
 
-def fail_exit(_msg):
+def fail_exit(_msg: str) -> str:
     """Funtion fail_exit() - Called if things goes wrong and show custom msg."""
 
     _msg = "[ERROR]: {} - Sorry about that, exiting...".format(_msg)
     print_std("DOWN", _msg)
-    os.sys.exit(4)
+    #os.exit(255)
+    raise SystemExit(255)
 
 
 def print_std(_type, _msg):
     """ Function print_std() - Standard print with color / type of message."""
 
-    if _type.upper() in colors:
-        print(colors[_type]+_msg+colors["NORMAL"])
+    if _type.upper() in COLORS:
+        print(COLORS[_type]+_msg+COLORS["NORMAL"])
     else:
         print(_msg)
-
 
 def print_header():
     """Function print_header() - just print the header. """
@@ -243,13 +242,13 @@ def print_header():
     print_std("HEADER", _header_str)
 
 
-def print_status(_service, turns):
+def print_status(_service: Service, turns: Counter) -> int:
     """Function print_status() - Print the service status."""
 
     _cstatus = {
-        "ONLINE ": colors["UP"]+_service.status+colors["NORMAL"],
-        "OFFLINE": colors["DOWN"]+_service.status+colors["NORMAL"],
-        "ALERT": colors["ALERT"]+_service.status+colors["NORMAL"]
+        "ONLINE ": COLORS["UP"]+_service.status+COLORS["NORMAL"],
+        "OFFLINE": COLORS["DOWN"]+_service.status+COLORS["NORMAL"],
+        "ALERT": COLORS["ALERT"]+_service.status+COLORS["NORMAL"]
     }
 
     _current_time = time.localtime()
@@ -264,6 +263,8 @@ def print_status(_service, turns):
             print(_alert_msg)
     else:
         print(_status_msg)
+
+    return 0
 
 
 def print_banner():
@@ -283,11 +284,12 @@ def print_banner():
     print("")
 
 
-def hostsfile_exist(file):
+def hostsfile_exist(file: str) -> bool:
     """Function hostsfile_exist() - Make sure the hosts file exists.
 
     Can be "minimon.txt" or the defined file on "-f or --hostsfile" args.
     """
+    exists: bool = False
     try:
         exists = os.path.isfile(file)
 
@@ -295,14 +297,11 @@ def hostsfile_exist(file):
         fail_exit("[ERROR]: Please check hostsfile provided: {}".format(file))
         #raise MinimonExc("[ERROR]: Please check hostsfile provided", e_msg) from e_msg
 
-    else:
-        if exists:
-            return True
-        return False
+    return exists
 
 
-def parse_hostsfile(file) -> list:
-    """Function parse_hostsfile() - Simple function to parse the content of hostsfile.
+def parse_hostsfile(file: str) -> list:
+    """Function parse_hostsfile() - Parses the content of hostsfile (-f argument or default with no hosts provided ./minimon.py).
 
     return a list like: ['Teste 123 :8.8.8.8:icmp\n', 'Host 2:1.1.1.1:http\n']
     """
@@ -317,19 +316,19 @@ def parse_hostsfile(file) -> list:
         #raise MinimonExc("Can't find the hosts file provided:{}".format(file), e_msg) from e_msg
 
     except PermissionError as e_msg:
-        fail_exit("No permission to read file provided:{}".format(file))
+        fail_exit("No permission to read the file provided:{}".format(file))
         #raise MinimonExc("No permission to read file provided:{}".format(file), e_msg) from e_msg
 
-    else:
-        return _list_hosts
+    return _list_hosts
 
 
-def parse_hostsargs(ret_args) -> list:
+def parse_hostsargs(ret_args: dict) -> list:
     """Function parse_hostsargs() - Parse hosts passed by arguments in CLI
 
     return a list like: ['Target[1]:8.8.8.8:icmp\n', 'Target[2]:1.1.1.1:icmp\n']"""
     _idx = 1
     _list_hosts = list()
+
     for host in ret_args["hostsarg"]:
         _list_hosts.append("Target[{_idx}]:{addr}:{prot}".format(
             _idx=_idx, addr=host, prot=ret_args["protocol"]))
@@ -386,14 +385,14 @@ def parse_args() -> dict:
             args.timeout = 30
         else:
             args.timeout = 1
-    
+
     try:
-        if args.protocol not in [ "http", "https", "icmp" ]:
-            if int(args.protocol) not in tcp_range:
+        if args.protocol not in ["http", "https", "icmp"]:
+            if int(args.protocol) not in TCP_RANGE:
                 raise ValueError
     except ValueError:
         fail_exit("Invalid protocol \"{}\". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(args.protocol))
-        
+
 
     if args.pos_arg:
         args_attr = {"mode": "pos_arg", "interval": args.interval,
@@ -411,13 +410,13 @@ def parse_args() -> dict:
     return args_attr
 
 
-def instance_service(_list_srvs) -> list:
+def instance_service(_list_srvs: list) -> list:
     """Function instance_service() - Do a list with instances of Service Class.
 
     Get the values needed to instance the Service Class.
     Each host/service inside the list provided will be append to a final list."""
-    _ret_list = []
-    _idx = 1
+    _ret_list: list = []
+    _idx: int = 1
     try:
         for host in _list_srvs:
             host_val = host.split(':')
@@ -426,11 +425,12 @@ def instance_service(_list_srvs) -> list:
             prot = host_val[2].rstrip("\n")
             _ret_list.append(Service(_idx, name, addr, prot))
             _idx += 1
-        return _ret_list
 
     except EOFError as e_msg:
         fail_exit("[ERROR]: Unexpected error.")
         #raise MinimonExc("[ERROR]: Unexpected error.", e_msg) from e_msg
+
+    return _ret_list
 
 
 def main():
@@ -476,10 +476,10 @@ def main():
     except KeyboardInterrupt:
         print("")
         print_std("ALERT", "Ouch! That's an interruption...")
-        os.sys.exit(130)
+        raise SystemExit(130)
 
     else:
-        os.sys.exit(0)
+        exit(0)
 
 
 if __name__ == '__main__':
