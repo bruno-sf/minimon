@@ -28,12 +28,6 @@ except ImportError as e_msg:
 COLORS = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
 TCP_RANGE = filter(lambda x: int(x), list(range(1, 65536)))
 
-class MinimonExc(Exception):
-    """Basic Exception Cls - Handles specific exceptions for debug only"""
-    def __init__(self, msg, orig_exc):
-        super().__init__(msg + (": {}".format(orig_exc)))
-        self.orig_exc = orig_exc
-
 
 class Service():
     """Service class - Is the Main class. Set the basics to monitor the services.
@@ -55,7 +49,7 @@ class Service():
 
     def __repr__(self):
         """Method to return a brief description of this class."""
-        return "Host/Service {self.name} : {self.addr} : {self.prot}"
+        return f"Host/Service {self.name} : {self.addr} : {self.prot}"
 
     def chk_web(self):
         """Method chk_web() - Web checking HTTP/HTTPS.
@@ -105,7 +99,6 @@ class Service():
 
         except OSError as e_msg:
             fail_exit("[ERROR]: Can't determine your OS.")
-            #raise MinimonExc("[ERROR]: Can't determine your OS.", e_msg) from e_msg
 
         else:
             if _ret == 0:
@@ -122,7 +115,6 @@ class Service():
 
         except socket.error as e_msg:
             return self.offline()
-            #raise MinimonExc("[ERROR]: Socket Error!", e_msg) from e_msg
 
         else:
             if conn == 0:
@@ -150,8 +142,6 @@ class Service():
 
         except ValueError:
             fail_exit(f'Invalid protocol "{_protocol}". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.')
-            #raise MinimonExc(
-                #"Invalid protocol: {}. Please, use http, https, icmp or a valid tcp port (1-65535) as argument.".format(_protocol), e_msg) from e_msg
 
         else:
             return 0
@@ -224,18 +214,17 @@ def fail_exit(_msg: str) -> str:
 def print_std(_type, _msg):
     """ Function print_std() - Standard print with color / type of message."""
 
-    if _type.upper() in COLORS:
-        print(COLORS[_type]+_msg+COLORS["NORMAL"])
-    else:
-        print(_msg)
+    _color_msg = COLORS[_type]+_msg+COLORS["NORMAL"]
+    print(f"{_color_msg if _type.upper() in COLORS else _msg }")
+
 
 def print_header():
     """Function print_header() - just print the header. """
 
     _header_str = f"[ STATUS  ] : (TURN:ID) - {'TIME':>6}   - {'[PROT]':>7} - NAME - ADDRESS"
     print_std("HEADER", _header_str)
-    
-    
+
+
 def print_status(_service: Service, turns: Counter) -> int:
     """Function print_status() - Print the service status."""
 
@@ -246,29 +235,28 @@ def print_status(_service: Service, turns: Counter) -> int:
     }
 
     _current_time = time.localtime()
-    _f_time = time.strftime('%H:%M:%S', _current_time)    
+    _f_time = time.strftime('%H:%M:%S', _current_time)
     _status_msg = f"[ {_cstatus[_service.status]} ] : {turns.count:5}:{_service.idx} {'-':>3} {_f_time} - [{_service.prot:>5}] - {_service.name} - {_service.addr}"
-    
+
     _status_msg_alert = f"[ {_cstatus['ALERT']} ] : {turns.count:5}:{_service.idx} {'-':>3} {_f_time} - [{_service.prot:>5}] - {_service.name} - {_service.addr}"
     
     if _service.last_status:
-        print(_status_msg if _service.last_status == _service.status else _status_msg_alert)
+        _ret_msg = f"{_status_msg if _service.last_status == _service.status else _status_msg_alert}"
     else:
-        print(_status_msg)
+        _ret_msg = f"{_status_msg}"
 
-    return 0
-
+    return print(_ret_msg)
 
 def print_banner():
     """Function print_banner() - print the banner with Version and Author."""
-    _banner = """
+    _banner = '''
      __  __ _       _
     |  \/  (_)     (_)
     | \  / |_ _ __  _ _ __ ___   ___  _ __  
     | |\/| | | '_ \| | '_ ` _ \ / _ \| '_ \ 
     | |  | | | | | | | | | | | | (_) | | | |
     |_|  |_|_|_| |_|_|_| |_| |_|\___/|_| |_|
-    """
+    '''
     print("")
     print_std("ALERT", f"{_banner}")
     print_std("ALERT", f"    Version: {VERSION} ({DATE}) - Author: {AUTHOR}")
@@ -286,7 +274,6 @@ def hostsfile_exist(file: str) -> bool:
 
     except OSError as e_msg:
         fail_exit(f"[ERROR]: Please check hostsfile provided: {file}")
-        #raise MinimonExc("[ERROR]: Please check hostsfile provided", e_msg) from e_msg
 
     return exists
 
@@ -389,7 +376,7 @@ def parse_args() -> dict:
                          "interval": args.interval, "count": args.count,
                          "timeout": args.timeout}
         else:
-            fail_exit("Can't find default hosts file: {}. Specify a valid file with -f or just pass the hosts as args. See -h for help".format(args.hostsfile))
+            fail_exit(f"Can't find default hosts file: {args.hostsfile}. Specify a valid file with -f or just pass the hosts as args. See -h for help")
 
     return args_attr
 
@@ -411,8 +398,7 @@ def instance_service(_list_srvs: list) -> list:
             _idx += 1
 
     except EOFError as e_msg:
-        fail_exit("[ERROR]: Unexpected error.")
-        #raise MinimonExc("[ERROR]: Unexpected error.", e_msg) from e_msg
+        fail_exit(f"[ERROR]: Unexpected error.")
 
     return _ret_list
 
@@ -438,7 +424,6 @@ def main():
 
     except RuntimeError as e_msg:
         fail_exit("[ERROR]: Runtime error")
-        #raise MinimonExc("[ERROR]: Runtime error", e_msg) from e_msg
 
     try:
         while True:
