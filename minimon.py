@@ -25,9 +25,9 @@ except ImportError as e_msg:
     print(e_msg)
     raise SystemExit()
 
-COLORS = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', "HEADER": '\033[95m', "ALERT": '\033[93m'}
-TCP_RANGE = filter(lambda x: int(x), list(range(1, 65536)))
-
+COLORS = {"UP": '\033[92m', "DOWN": '\033[91m', "NORMAL": '\033[0m', \
+        "HEADER": '\033[95m', "ALERT": '\033[93m'}
+TCP_RANGE = list(range(1, 65536))
 
 class Service():
     """Service class - Is the Main class. Set the basics to monitor the services.
@@ -97,7 +97,7 @@ class Service():
                 # Will use nix cmds
                 _ret = os.system(_cmd_unkwon)
 
-        except OSError as e_msg:
+        except OSError:
             fail_exit("[ERROR]: Can't determine your OS.")
 
         else:
@@ -113,12 +113,13 @@ class Service():
                 _sock.settimeout(self.timeout)
                 conn = _sock.connect_ex((self.addr, _prt))
 
-        except socket.error as e_msg:
+        except socket.error:
             return self.offline()
 
         else:
             if conn == 0:
                 return self.online()
+
             return self.offline()
 
     def chk_srv(self):
@@ -141,7 +142,8 @@ class Service():
                 raise ValueError
 
         except ValueError:
-            fail_exit(f'Invalid protocol "{_protocol}". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.')
+            fail_exit(f'Invalid protocol "{_protocol}". Please, use http,' \
+                +'https, icmp or a valid tcp port (1-65535) as argument.')
 
         else:
             return 0
@@ -168,8 +170,12 @@ class Service():
     def timeout(self, seconds):
         """Property timeout() - Set the timeout using property decorator ;)."""
 
-        if (seconds < 0) or (seconds > 30):
-            raise ValueError("Invalid timeout.")
+        if seconds < 1:
+            seconds = 1
+
+        elif seconds > 30:
+            seconds = 30
+
         self._timeout = seconds
 
 
@@ -186,7 +192,8 @@ class Counter():
     def __repr__(self):
         """Method to return a brief description of this class."""
 
-        return f"Class to handle counting. Initial:{self.initial} - Current:{self.count} - Final:{self.final_count}"
+        return f"Class to handle counting. Initial:{self.initial} - \
+            Current:{self.count} - Final:{self.final_count}"
 
     def finish(self):
         """Method finish - Make sure to exit when the count is over.
@@ -239,7 +246,7 @@ def print_status(_service: Service, turns: Counter) -> int:
     _status_msg = f"[ {_cstatus[_service.status]} ] : {turns.count:5}:{_service.idx} {'-':>3} {_f_time} - [{_service.prot:>5}] - {_service.name} - {_service.addr}"
 
     _status_msg_alert = f"[ {_cstatus['ALERT']} ] : {turns.count:5}:{_service.idx} {'-':>3} {_f_time} - [{_service.prot:>5}] - {_service.name} - {_service.addr}"
-    
+
     if _service.last_status:
         _ret_msg = f"{_status_msg if _service.last_status == _service.status else _status_msg_alert}"
     else:
@@ -272,14 +279,15 @@ def hostsfile_exist(file: str) -> bool:
     try:
         exists = os.path.isfile(file)
 
-    except OSError as e_msg:
+    except OSError:
         fail_exit(f"[ERROR]: Please check hostsfile provided: {file}")
 
     return exists
 
 
 def parse_hostsfile(file: str) -> list:
-    """Function parse_hostsfile() - Parses the content of hostsfile (-f argument or default with no hosts provided ./minimon.py).
+    """Function parse_hostsfile() - Parses the content of hostsfile
+    (-f argument or default with no hosts provided ./minimon.py).
 
     return a list like: ['Teste 123 :8.8.8.8:icmp\n', 'Host 2:1.1.1.1:http\n']
     """
@@ -289,13 +297,11 @@ def parse_hostsfile(file: str) -> list:
             for line in in_file:
                 _list_hosts.append(line)
 
-    except FileNotFoundError as e_msg:
+    except FileNotFoundError:
         fail_exit(f"Can't find the hosts file provided:{file}")
-        #raise MinimonExc("Can't find the hosts file provided:{}".format(file), e_msg) from e_msg
 
-    except PermissionError as e_msg:
+    except PermissionError:
         fail_exit(f"No permission to read the file provided:{file}")
-        #raise MinimonExc("No permission to read file provided:{}".format(file), e_msg) from e_msg
 
     return _list_hosts
 
@@ -321,7 +327,9 @@ def parse_args() -> dict:
 
     parser.add_argument("-i", "--interval", type=int, action="store",
                         dest="interval", default=10,
-                        help="The interval in seconds minimon will make another check. Default: 10 seconds (1-3600)")
+                        help="The interval in seconds minimon will" \
+                            +" make another check. Default:" \
+                            +" 10 seconds (1-3600)")
 
     parser.add_argument("-t", "--timeout", type=int, action="store",
                         dest="timeout", default=5,
@@ -329,41 +337,54 @@ def parse_args() -> dict:
 
     parser.add_argument("-c", "--count", type=int, action="store",
                         dest="count", default=0,
-                        help="How many checks minimon will do. Default: 0 (infinite loop) - (0-99999).")
+                        help="How many checks minimon will do." \
+                            +"Default: 0 (infinite loop) - (0-99999).")
 
     my_exc_grp = parser.add_mutually_exclusive_group()
 
     my_exc_grp.add_argument("-f", "--hostsfile", type=str, action="store",
                             dest="hostsfile", default="minimon.txt",
-                            help="The hosts file should content: NAME:ADDRESS:PROTOCOL line by line. Default: minimon.txt")
+                            help="The hosts file should content:" \
+                                +"NAME:ADDRESS:PROTOCOL line by line." \
+                                +"Default: minimon.txt")
 
     my_exc_grp.add_argument("-p", "--protocol", type=str, action="store",
                             dest="protocol", default="icmp",
-                            help="Use only if not using hostsfile. Default=icmp")
+                            help="Use only if not using hostsfile. " \
+                                +"Default=icmp")
 
     parser.add_argument(
-        '--version', action='version', version=f'%(prog)s - Minimon - Version: {VERSION} - {DATE} - Author: {AUTHOR}')
+        '--version', action='version', version=f'%(prog)s - Minimon - \
+            Version: {VERSION} - {DATE} - Author: {AUTHOR}')
 
     parser.add_argument('pos_arg', default=None, metavar="Target(s)",
                         type=str, nargs='*',
-                        help="If you pass a target host(s) as a positional arg the hostsfile will be ignored. Ex: minimon.py -p https www.lpi.org webserver.intranet 8.8.8.8")
+                        help="If you pass a target host(s) as a positional" \
+                        +" arg the hostsfile will be ignored. Ex: " \
+                        +"minimon.py -p https www.lpi.org webserver.intranet" \
+                        +" 8.8.8.8")
 
     args = parser.parse_args()
 
     #Silently keep things going on if user pass vals out of range.
-    if args.interval > 3600: args.interval = 3600
+    if args.interval > 3600:
+        args.interval = 3600
 
-    if args.count > 99999: args.count = 99999
+    if args.count > 99999:
+        args.count = 99999
 
-    if args.timeout > 30: args.timeout = 30
+    if args.timeout > 30:
+        args.timeout = 30
 
     try:
         if args.protocol not in ["http", "https", "icmp"]:
             if int(args.protocol) not in TCP_RANGE:
                 raise ValueError
-    except ValueError:
-        fail_exit(f'Invalid protocol "{args.protocol}". Please, use http, https, icmp or a valid tcp port (1-65535) as argument.')
 
+    except ValueError:
+        fail_exit(f'Invalid protocol "{args.protocol}".' \
+                  +f'Please, use http, https, icmp or a' \
+                  +f'valid tcp port (1-65535) as argument.')
 
     if args.pos_arg:
         args_attr = {"mode": "pos_arg", "interval": args.interval,
@@ -376,7 +397,9 @@ def parse_args() -> dict:
                          "interval": args.interval, "count": args.count,
                          "timeout": args.timeout}
         else:
-            fail_exit(f"Can't find default hosts file: {args.hostsfile}. Specify a valid file with -f or just pass the hosts as args. See -h for help")
+            fail_exit(f"Can't find hosts file: {args.hostsfile}." \
+                +f" Specify a valid file with -f or just pass the" \
+                +f" hosts as args. See -h for help")
 
     return args_attr
 
@@ -397,7 +420,7 @@ def instance_service(_list_srvs: list) -> list:
             _ret_list.append(Service(_idx, name, addr, prot))
             _idx += 1
 
-    except EOFError as e_msg:
+    except EOFError:
         fail_exit(f"[ERROR]: Unexpected error.")
 
     return _ret_list
@@ -443,8 +466,7 @@ def main():
         fail_exit(e_msg)
 
     except KeyboardInterrupt:
-        print("")
-        print_std("ALERT", "Ouch! That's an interruption...")
+        print_std("ALERT", "\nOuch! That's an interruption...")
         raise SystemExit(130)
 
     else:
