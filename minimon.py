@@ -8,8 +8,8 @@ Released at: Jan 2019
 Purpose: Check if a service/host is up (green), down(red) and shows when status changes(yellow).
 License: This project is licensed under the MIT License - see the LICENSE.md file for details.
 """
-VERSION = 4
-DATE = "Nov 2020"
+VERSION = 5
+DATE = "May 2021"
 AUTHOR = "Bruno Ferreira"
 
 try:
@@ -353,9 +353,8 @@ def parse_args() -> dict:
                             help="Use only if not using hostsfile. " \
                                 +"Default=icmp")
 
-    parser.add_argument(
-        '--version', action='version', version=f'%(prog)s - Minimon - \
-            Version: {VERSION} - {DATE} - Author: {AUTHOR}')
+    parser.add_argument('-v', '--version', action='version', 
+                        version=f'%(prog)s - Version: {VERSION} - {DATE}')
 
     parser.add_argument('pos_arg', default=None, metavar="Target(s)",
                         type=str, nargs='*',
@@ -465,7 +464,7 @@ def main():
     except KeyError as e_msg:
         fail_exit(e_msg)
 
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print_std("ALERT", "\nOuch! That's an interruption...")
         raise SystemExit(130)
 
