@@ -29,8 +29,6 @@ Docker version(same behavior)
 ```
 docker run brunoferreira/minimon
 ```
-![screenshot](https://i.imgur.com/m9bcrE8.png)
-
 Using hosts file(default):
 Create a hosts file or edit minimon.txt with your hosts/services.
 The hosts file must use the following structure(already included):
@@ -85,9 +83,6 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 ### Protocols supported :satellite::
 HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
 
-![screenshot](https://i.imgur.com/QGzBWzQ.png)
-![screenshot](https://i.imgur.com/sGgsbYc.png)
-
 ### TODO and Thoughts :thought_balloon:
 For the sake of keeping things simple, I think the program is what it is, of course a few features can come here and there but  nothing in mind now. Any new fancy feature would probably require external libs or deceived from the original purpose.
 
@@ -100,4 +95,3 @@ Check with: python3 -m ssl
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
