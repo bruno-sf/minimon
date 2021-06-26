@@ -15,24 +15,13 @@ Well, if you are a CLI guy like me, and just need a quick and reliable status of
 
 ### Usage
 
-A step by step series of examples that show you how to use minimon.
+See here a step by step series of examples that shows you how to use minimon.
 
-Default behavior: loop indefinitely, checking every minute hosts/service inside minimon.txt file.
-
-```
-python3 minimon.py
-```
-![gif](https://i.imgur.com/XkMGVnT.gif)
-
-Docker version(same behavior)
-
-```
-docker run brunoferreira/minimon
-```
 Using hosts file(default):
-Create a hosts file or edit minimon.txt with your hosts/services.
-The hosts file must use the following structure(already included):
-[NAME/DESCRIPTION]:[ADDRESS]:[PROTOCOL/TCPPORT]
+Edit minimon.txt with your hosts/services or Create a hosts file.
+The hosts file must use the following structure(already included):[NAME/DESCRIPTION]:[ADDRESS]:[PROTOCOL/TCPPORT]
+
+Example: minimon.txt:
 ```
 Name/Description of host 1:8.8.8.8:icmp
 Name/Description of host 2:www.bigwebprovider.com/somestaticpage.html:http
@@ -41,8 +30,13 @@ Name/Description of host 4:ftp.qubes-os.org:ftps
 Name/Description of host 5:somealternativepage.net:8080
 ```
 
-Passing hosts without Hosts file.
-Check it every 30 secs for 5 times:
+Default behavior: loop indefinitely, checking every 5 seconds hosts/service inside minimon.txt file.
+```
+python3 minimon.py
+```
+![gif](https://i.imgur.com/fu32QAl.gif)
+
+Passing hosts without Hosts file. Checking it every 30 secs for 5 times:
 ```
 python3 minimon.py -i 30 -c 5 8.8.8.8 8.8.4.4 1.1.1.1
 ```
@@ -62,6 +56,14 @@ python3 minimon.py -i 10 -p http localhost
 or
 python3 minimon.py -i 10 localhost (default protocol is icmp)
 ```
+![gif](https://i.imgur.com/aHGzqXe.gif)
+
+Docker version(same behavior)
+
+```
+docker run brunoferreira/minimon
+```
+
 ### All Available Parameters :speech_balloon::
 | Name | Description |
 |------|-------------|
@@ -76,9 +78,9 @@ python3 minimon.py -i 10 localhost (default protocol is icmp)
 ### Color Status Code :traffic_light::
 | Color | Description |
 |------|-------------|
-| GREEN | Service/Host is up |
-| YELLOW | Service/Host status changed since the last check |
-| RED | Service/Host is down |
+| 🟢 | Service/Host is up |
+| 🟡 | Service/Host status changed since the last check |
+| 🔴 | Service/Host is down |
 
 ### Protocols supported :satellite::
 HTTP/HTTPS, ICMP, and generic (Socks) TCP Open port(1-65535).
